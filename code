@@ -1,0 +1,31 @@
+import pandas as pd
+import numpy as np
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import LabelEncoder
+df = pd.DataFrame(data)
+
+for column in df.columns[:11]:
+    df[column] = df[column].map({'Yes': 1, 'No': 0})
+
+le = LabelEncoder()
+df['VisitFrequency'] = le.fit_transform(df['VisitFrequency'])
+df['Gender'] = df['Gender'].map({'Female': 1, 'Male': 0})
+segmentation_vars = df.iloc[:, :11].values
+pca = PCA(n_components=2)
+segmentation_pca = pca.fit_transform(segmentation_vars)
+
+print("Explained Variance Ratios:", pca.explained_variance_ratio_)
+print("Cumulative Variance Explained:", np.cumsum(pca.explained_variance_ratio_))
+kmeans = KMeans(n_clusters=4, random_state=1234)
+clusters = kmeans.fit_predict(segmentation_vars)
+
+df['Segment'] = clusters
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=segmentation_pca[:, 0], y=segmentation_pca[:, 1], hue=df['Segment'], palette="deep")
+plt.title('Perceptual Map of McDonald\'s Customer Segments')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.show()
